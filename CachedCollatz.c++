@@ -13,6 +13,7 @@
 #include <sstream>  // istringstream
 #include <string>   // getline, string
 #include <utility>  // make_pair, pair
+#include <unordered_map>
 
 #include "Collatz.h"
 
@@ -33,23 +34,24 @@ pair<int, int> collatz_read (const string& s) {
 // collatz_eval
 // ------------
 
+static unordered_map<long long int, int> cycles_cache;
+
+int collatz_eval_helper(long long int n) {
+    assert(n > 0);
+    if (cycles_cache.find(n) == cycles_cache.end()) {
+        cycles_cache[n] = 1 + collatz_eval_helper((n%2) ? (3*n+1) : (n/2));}
+    return cycles_cache[n];}
+
 int collatz_eval (int i, int j) {
     //assert(0 < i && i <= j);
     if (j < i) {
         int temp = i;
         i = j;
         j = temp;}
+    cycles_cache[1] = 1;
     int max_cycles = 0;
     for (; i <= j; ++i) {
-        long long int n = i;
-        int cycles = 1;
-        while (n > 1) {
-            ++cycles;
-            if (n % 2) {
-                n = 3 * n + 1;}
-            else {
-                n /= 2;}}
-        assert(n == 1);
+        int cycles = collatz_eval_helper(i);
         if (cycles > max_cycles) {
             max_cycles = cycles;}}
     assert(max_cycles > 0);
